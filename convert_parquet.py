@@ -160,4 +160,6 @@ def readFile(data_in_filepath, parquet_out_filepath):
     # Write to Parquet
     pq.write_table(table, parquet_out_filepath)
 
-readFile('testing.txt', 'data/Bmeson/converted_train_file.parquet')
+readFile('train.txt', 'data/Bmeson/converted_train_file.parquet')
+readFile('val.txt', 'data/Bmeson/converted_val_file.parquet')
+readFile('test.txt', 'data/Bmeson/converted_test_file.parquet')
