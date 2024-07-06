@@ -28,6 +28,7 @@ def SetAKArr(filepath):
     _label3 = []
     _label4 = []
     _label5 = []
+    jet_pt = []
 
     dirty = 0
     first = 1
@@ -60,6 +61,7 @@ def SetAKArr(filepath):
                 _label3.append(float(exp_inf[3]))
                 _label4.append(float(exp_inf[4]))
                 _label5.append(float(exp_inf[5]))
+                jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             elif (n==0 and first):
 #                 n_particles_ls.append(n)
                 exp_inf = line.split()
@@ -68,6 +70,7 @@ def SetAKArr(filepath):
                 _label3.append(float(exp_inf[3]))
                 _label4.append(float(exp_inf[4])) 
                 _label5.append(float(exp_inf[5]))
+                jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             first = 0
             n = 0
             dirty = 0
@@ -94,6 +97,7 @@ def SetAKArr(filepath):
                 mass_ls.append(float(par[6]))
                 charge_ls.append(float(par[0]))
                 pdg_ls.append(float(par[1]))
+
     px.append(px_ls)
     py.append(py_ls)
     pz.append(pz_ls)
@@ -101,16 +105,28 @@ def SetAKArr(filepath):
     mass.append(mass_ls)
     charge.append(charge_ls)
     pdg.append(pdg_ls)
+    n_particles_ls.append(n)
+
     v = {}
+    #jet infor
+    v['jet_pt'] = jet_pt
+    v['jet_eta'] = _label1
+    v['jet_phi'] = _label2
+    v['jet_energy'] = _label4
+    v['jet_mass'] = _label5
+    v['jet_nparticles'] = n_particles_ls
+
+    v['part_deta'] = px
+    v['part_dphi'] = py
     v['part_px'] = px
     v['part_py'] = py
     v['part_pz'] = pz
     v['part_energy'] = energy
-    v['part_mass'] = mass
+    # v['part_mass'] = mass
     v['part_charge'] = charge
 #     v['label'] = np.stack((_label1, _label2, _label3, _label4, _label5), axis = -1)
-    # v['label'] = np.stack(_label5, axis = -1)
-    v['label'] = _label5
+    v['label'] = np.stack(_label5, axis = -1)
+    # v['label'] = _label5
     return v
 
 
@@ -118,10 +134,24 @@ def readFile(data_in_filepath, parquet_out_filepath):
     # Define the schema
     schema = pa.schema([
         pa.field('label', pa.float64(), nullable=False),
+        pa.field('jet_pt', pa.float32(), nullable=False),
+        pa.field('jet_eta', pa.float32(), nullable=False),
+        pa.field('jet_phi', pa.float32(), nullable=False),
+        pa.field('jet_energy', pa.float32(), nullable=False),
+        pa.field('jet_mass', pa.float32(), nullable=False),
+        pa.field('jet_nparticles', pa.int64(), nullable=False),
         pa.field('part_px', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_py', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_pz', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_energy', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_deta', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_dphi', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        # pa.field('part_pid', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        # pa.field('part_isNeutralHadron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        # pa.field('part_isPhoton', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        # pa.field('part_isChargedHadron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        # pa.field('part_isElectron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        # pa.field('part_isMuon', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_charge', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
     ])
 
@@ -160,6 +190,6 @@ def readFile(data_in_filepath, parquet_out_filepath):
     # Write to Parquet
     pq.write_table(table, parquet_out_filepath)
 
-readFile('train.txt', 'data/Bmeson/converted_train_file.parquet')
-readFile('val.txt', 'data/Bmeson/converted_val_file.parquet')
-readFile('test.txt', 'data/Bmeson/converted_test_file.parquet')
+readFile('../train.txt', '../data/Bmeson/train_file.parquet')
+readFile('../val.txt', '../data/Bmeson/val_file.parquet')
+readFile('../test.txt', '../data/Bmeson/test_file.parquet')
