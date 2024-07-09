@@ -16,6 +16,7 @@ def SetAKArr(filepath):
     mass = []
     charge = []
     pdg = []
+
     px_ls = []
     py_ls = []
     pz_ls = []
@@ -23,12 +24,16 @@ def SetAKArr(filepath):
     mass_ls = []
     charge_ls = []
     pdg_ls = []
+
     _label1 = []
     _label2 = []
     _label3 = []
     _label4 = []
     _label5 = []
+
     jet_pt = []
+    nullarr = []
+    nullarr_ls = []
 
     dirty = 0
     first = 1
@@ -46,30 +51,37 @@ def SetAKArr(filepath):
                 mass.append(mass_ls)
                 charge.append(charge_ls)
                 pdg.append(pdg_ls)
+
+                nullarr.append(nullarr_ls)
+                nullarr_ls = []
+                
                 px_ls = []
-                pdg_ls = []
                 px_ls = []
                 py_ls = []
                 pz_ls = []
                 energy_ls = []
                 charge_ls = []
                 mass_ls = []
+                pdg_ls = []
 
                 exp_inf = line.split()
                 _label1.append(float(exp_inf[1]))
                 _label2.append(float(exp_inf[2]))
                 _label3.append(float(exp_inf[3]))
                 _label4.append(float(exp_inf[4]))
-                _label5.append(float(exp_inf[5]))
+
+                # _label5.append(float(exp_inf[5]))
+                _label5.append(1)
                 jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             elif (n==0 and first):
-#                 n_particles_ls.append(n)
                 exp_inf = line.split()
                 _label1.append(float(exp_inf[1]))
                 _label2.append(float(exp_inf[2]))
                 _label3.append(float(exp_inf[3]))
                 _label4.append(float(exp_inf[4])) 
-                _label5.append(float(exp_inf[5]))
+
+                # _label5.append(float(exp_inf[5]))
+                _label5.append(1)
                 jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             first = 0
             n = 0
@@ -86,6 +98,8 @@ def SetAKArr(filepath):
                 energy_ls = []
                 charge_ls = []
                 mass_ls = []
+
+                nullarr_ls = []
             if (not dirty):
                 par = line.split()
                 ##particle +1
@@ -96,7 +110,9 @@ def SetAKArr(filepath):
                 energy_ls.append(float(par[5]))
                 mass_ls.append(float(par[6]))
                 charge_ls.append(float(par[0]))
+
                 pdg_ls.append(float(par[1]))
+                nullarr_ls.append(1)
 
     px.append(px_ls)
     py.append(py_ls)
@@ -107,14 +123,23 @@ def SetAKArr(filepath):
     pdg.append(pdg_ls)
     n_particles_ls.append(n)
 
+    nullarr.append(nullarr_ls)
+
     v = {}
     #jet infor
     v['jet_pt'] = jet_pt
     v['jet_eta'] = _label1
     v['jet_phi'] = _label2
     v['jet_energy'] = _label4
-    v['jet_mass'] = _label5
+    v['jet_mass'] = _label4
     v['jet_nparticles'] = n_particles_ls
+    v['part_pid'] = pdg
+    v['part_isNeutralHadron'] = nullarr
+    v['part_isPhoton'] = nullarr
+    v['part_isChargedHadron'] = nullarr
+    v['part_isElectron'] = nullarr
+    v['part_isMuon'] = nullarr
+
 
     v['part_deta'] = px
     v['part_dphi'] = py
@@ -146,12 +171,12 @@ def readFile(data_in_filepath, parquet_out_filepath):
         pa.field('part_energy', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_deta', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_dphi', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        # pa.field('part_pid', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        # pa.field('part_isNeutralHadron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        # pa.field('part_isPhoton', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        # pa.field('part_isChargedHadron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        # pa.field('part_isElectron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        # pa.field('part_isMuon', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_pid', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_isNeutralHadron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_isPhoton', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_isChargedHadron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_isElectron', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_isMuon', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
         pa.field('part_charge', pa.list_(pa.field('item', pa.float32(), nullable=False)), nullable=False),
     ])
 

@@ -64,6 +64,7 @@ if [[ "$model" == "PN-FineTune" ]]; then
 fi
 
 weaver \
+    #--data-train "${DATADIR}/train_file_*.parquet" \
     --data-train "${DATADIR}/train_file.parquet" \
     --data-test "${DATADIR}/test_file.parquet" \
     --data-config data/Bmeson/bm_${FEATURE_TYPE}.yaml --network-config $modelopts \
