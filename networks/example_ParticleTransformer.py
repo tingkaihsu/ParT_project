@@ -58,7 +58,6 @@ def get_model(data_config, **kwargs):
 
     return model, model_info
 
-
 def get_loss(data_config, **kwargs):
     return torch.nn.CrossEntropyLoss()
     # return torch.nn.MSELoss()   #MSE for regression
