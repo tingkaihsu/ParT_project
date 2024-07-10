@@ -5,8 +5,8 @@ selection:
 new_variables:
    ### [format] name: formula
    ### can use functions from `math`, `np` (numpy), and `awkward` in the expression
-   part_mask: ak.ones_like(part_deta)
-   part_pt: np.hypot(part_px, part_py)
+   part_mask: ak.ones_like(part_px)
+   # part_pt: np.hypot(part_px, part_py)
    # part_pt_log: np.log(part_pt)
    # part_e_log: np.log(part_energy)
    # part_logptrel: np.log(part_pt/jet_pt)
@@ -26,12 +26,18 @@ inputs:
       length: 128
       pad_mode: wrap
       vars: 
-         - [part_deta, null]
-         - [part_dphi, null]
+         - [part_px, null]
+         - [part_py, null]
+         - [part_pz, null]
    pf_features:
       length: 128
       pad_mode: wrap
       vars: 
+         - [part_px, null]
+         - [part_py, null]
+         - [part_pz, null]
+         - [part_energy, null]
+         - [part_charge, null]
       ### [format 1]: var_name (no transformation)
       ### [format 2]: [var_name, 
       ###              subtract_by(optional, default=None, no transf. if preprocess.method=manual, auto transf. if preprocess.method=auto), 
@@ -44,8 +50,8 @@ inputs:
          # - [part_logptrel, -4.7, 0.7]
          # - [part_logerel, -4.7, 0.7]
          # - [part_deltaR, 0.2, 4.0]
-         - [part_deta, null]
-         - [part_dphi, null]
+         # - [part_deta, null]
+         # - [part_dphi, null]
    pf_vectors:
       length: 128
       pad_mode: wrap
@@ -63,12 +69,13 @@ inputs:
 labels:
    ### type can be `simple`, `custom`
    ### [option 1] use `simple` for binary/multi-class classification, then `value` is a list of 0-1 labels
-   type: simple
+   type: simple 
    value: [jet_isQ, jet_isG]
+
    ### [option 2] otherwise use `custom` to define the label, then `value` is a map
    # type: custom
    # value: 
-   #    truth_label: label.argmax(1)
+   #    truth_label: label
 
 observers:
    # - jet_pt
