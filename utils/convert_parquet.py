@@ -215,6 +215,6 @@ def readFile(data_in_filepath, parquet_out_filepath):
     # Write to Parquet
     pq.write_table(table, parquet_out_filepath)
 
-readFile('../train.txt', '../data/Bmeson/train_file.parquet')
-readFile('../val.txt', '../data/Bmeson/val_file.parquet')
-readFile('../test.txt', '../data/Bmeson/test_file.parquet')
+readFile('../raw_data/train.txt', '../data/Bmeson/train_file.parquet')
+readFile('../raw_data/val.txt', '../data/Bmeson/val_file.parquet')
+readFile('../raw_data/test.txt', '../data/Bmeson/test_file.parquet')
