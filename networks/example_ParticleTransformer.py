@@ -50,6 +50,7 @@ def get_model(data_config, **kwargs):
     model_info = {
         'input_names': list(data_config.input_names),
         'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
+        # 'input_shapes': {k: (batch_size,) + s for k, s in data_config['input_shapes'].items()},
         'output_names': ['softmax'],
         # 'output_names': ['linear'],
         'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'softmax': {0: 'N'}}},

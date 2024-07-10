@@ -151,6 +151,7 @@ def SetAKArr(filepath):
     v['part_charge'] = charge
 #     v['label'] = np.stack((_label1, _label2, _label3, _label4, _label5), axis = -1)
     v['label'] = np.stack(_label5, axis = -1)
+    print(v['label'].shape)
     # v['label'] = _label5
     return v
 

@@ -76,7 +76,9 @@ labels:
    # type: custom
    # value: 
    #    truth_label: label
-
+   # type: custom
+   # value:
+   #    mass: [label, null]
 observers:
    # - jet_pt
    # - jet_eta
