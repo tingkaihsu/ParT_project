@@ -14,6 +14,7 @@ new_variables:
    # part_deltaR: np.hypot(part_deta, part_dphi)
    jet_isQ: label
    jet_isG: 1-label
+   mass: label
 
 preprocess:
   ### method: [manual, auto] - whether to use manually specified parameters for variable standardization
@@ -69,16 +70,16 @@ inputs:
 labels:
    ### type can be `simple`, `custom`
    ### [option 1] use `simple` for binary/multi-class classification, then `value` is a list of 0-1 labels
-   type: simple 
-   value: [jet_isQ, jet_isG]
+   # type: simple 
+   # value: [jet_isQ, jet_isG]
+   #this is for classification
 
    ### [option 2] otherwise use `custom` to define the label, then `value` is a map
-   # type: custom
-   # value: 
-   #    truth_label: label
-   # type: custom
-   # value:
-   #    mass: [label, null]
+   type: custom
+   value: 
+      truth_label: label
+   # type: simple
+   # value: [jet_isQ, jet_isG]
 observers:
    # - jet_pt
    # - jet_eta

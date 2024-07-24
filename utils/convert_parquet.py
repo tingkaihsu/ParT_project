@@ -70,8 +70,9 @@ def SetAKArr(filepath):
                 _label3.append(float(exp_inf[3]))
                 _label4.append(float(exp_inf[4]))
 
+                # mass
                 # _label5.append(float(exp_inf[5]))
-                _label5.append(1)
+                _label5.append(1.0)
                 jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             elif (n==0 and first):
                 exp_inf = line.split()
@@ -80,8 +81,8 @@ def SetAKArr(filepath):
                 _label3.append(float(exp_inf[3]))
                 _label4.append(float(exp_inf[4])) 
 
-                # _label5.append(float(exp_inf[5]))
-                _label5.append(1)
+                _label5.append(float(exp_inf[5]))
+                # _label5.append(1.0)
                 jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             first = 0
             n = 0

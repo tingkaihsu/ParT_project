@@ -37,7 +37,8 @@ def get_model(data_config, **kwargs):
         block_params=None,
         cls_block_params={'dropout': 0, 'attn_dropout': 0, 'activation_dropout': 0},
         fc_params=[],
-        activation='gelu',
+        # activation='gelu',
+        activation = 'relu',
         # misc
         trim=True,
         for_inference=False,
@@ -49,16 +50,19 @@ def get_model(data_config, **kwargs):
 
     model_info = {
         'input_names': list(data_config.input_names),
+        # 'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
+        # 'output_names': ['softmax'],
+        # 'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'softmax': {0: 'N'}}},
         'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
-        # 'input_shapes': {k: (batch_size,) + s for k, s in data_config['input_shapes'].items()},
-        'output_names': ['softmax'],
-        # 'output_names': ['linear'],
-        'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'softmax': {0: 'N'}}},
-        # 'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'linear': {0: 'N'}}},
+        'output_names': ['linear'],
+        'dynamic_axes': {**{k: {0: 'N', 1: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'linear': {0: 'N'}}},
     }
-
+    # print('HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH')
+    # print(model_info['input_shapes'])
+    # print(model_info['dynamic_axes'])
+    # print(cfg['num_classes'])
     return model, model_info
 
 def get_loss(data_config, **kwargs):
-    return torch.nn.CrossEntropyLoss()
-    # return torch.nn.MSELoss()   #MSE for regression
+    # return torch.nn.CrossEntropyLoss()
+    return torch.nn.MSELoss()   #MSE for regression
