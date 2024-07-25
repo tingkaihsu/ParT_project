@@ -69,7 +69,9 @@ weaver \
     --data-config data/Bmeson/bm_${FEATURE_TYPE}.yaml --network-config $modelopts \
     --model-prefix training/Bmeson/${model}/{auto}${suffix}/net \
     --num-workers 1 --fetch-step 1 --in-memory --train-val-split 0.8889 \
-    --batch-size 128 --samples-per-epoch 1600000 --samples-per-epoch-val 200000 --num-epochs 20 --gpus 0 \
+    --batch-size 128 --samples-per-epoch 1600000 --samples-per-epoch-val 200000 --num-epochs 1 --gpus 0 \
     --start-lr $lr --optimizer ranger --log logs/Bmeson_${model}_{auto}${suffix}.log --predict-output pred.root \
     --tensorboard Bmeson_${FEATURE_TYPE}_${model}${suffix} \
+    --regression-mode \
+    # open the regression-mode
     ${extraopts} "${@:3}"

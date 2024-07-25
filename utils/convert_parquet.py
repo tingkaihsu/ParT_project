@@ -71,8 +71,8 @@ def SetAKArr(filepath):
                 _label4.append(float(exp_inf[4]))
 
                 # mass
-                # _label5.append(float(exp_inf[5]))
-                _label5.append(1.0)
+                _label5.append(float(exp_inf[5]))
+                # _label5.append(1.0)
                 jet_pt.append(float(exp_inf[1])+float(exp_inf[2])+float(exp_inf[3]))
             elif (n==0 and first):
                 exp_inf = line.split()
@@ -152,7 +152,7 @@ def SetAKArr(filepath):
     v['part_charge'] = charge
 #     v['label'] = np.stack((_label1, _label2, _label3, _label4, _label5), axis = -1)
     v['label'] = np.stack(_label5, axis = -1)
-    print(v['label'].shape)
+    # print(v['label'].shape)
     # v['label'] = _label5
     return v
 

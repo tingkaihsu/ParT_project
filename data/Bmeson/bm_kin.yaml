@@ -77,9 +77,9 @@ labels:
    ### [option 2] otherwise use `custom` to define the label, then `value` is a map
    type: custom
    value: 
-      truth_label: label
+      truth_label: mass
    # type: simple
-   # value: [jet_isQ, jet_isG]
+   # value: [label]
 observers:
    # - jet_pt
    # - jet_eta
