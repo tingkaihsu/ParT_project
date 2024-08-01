@@ -55,12 +55,8 @@ def get_model(data_config, **kwargs):
         # 'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'softmax': {0: 'N'}}},
         'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
         'output_names': ['linear'],
-        'dynamic_axes': {**{k: {0: 'N', 1: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'linear': {0: 'N'}}},
+        'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'linear': {0: 'N'}}},
     }
-    # print('HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH')
-    # print(model_info['input_shapes'])
-    # print(model_info['dynamic_axes'])
-    # print(cfg['num_classes'])
     return model, model_info
 
 def get_loss(data_config, **kwargs):
