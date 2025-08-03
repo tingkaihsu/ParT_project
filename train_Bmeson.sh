@@ -25,18 +25,19 @@ elif [[ "$model" == "ParT-FineTune" ]]; then
     extraopts="--optimizer-option lr_mult (\"fc.*\",50) --lr-scheduler none"
 elif [[ "$model" == "PN" ]]; then
     modelopts="networks/example_ParticleNet.py"
-    lr="1e-2"
+    lr="1e-3"
+    # too high training rate
 elif [[ "$model" == "PN-FineTune" ]]; then
     modelopts="networks/example_ParticleNet_finetune.py"
     lr="1e-3"
     extraopts="--optimizer-option lr_mult (\"fc_out.*\",50) --lr-scheduler none"
 elif [[ "$model" == "PFN" ]]; then
     modelopts="networks/example_PFN.py"
-    lr="2e-2"
+    lr="2e-3"
     extraopts="--batch-size 4096"
 elif [[ "$model" == "PCNN" ]]; then
     modelopts="networks/example_PCNN.py"
-    lr="2e-2"
+    lr="2e-3"
     extraopts="--batch-size 4096"
 else
     echo "Invalid model $model!"
@@ -69,8 +70,8 @@ weaver \
     --data-config data/Bmeson/bm_${FEATURE_TYPE}.yaml --network-config $modelopts \
     --model-prefix training/Bmeson/${model}/{auto}${suffix}/net \
     --num-workers 1 --fetch-step 1 --in-memory --train-val-split 0.80 \
-    --batch-size 2 --samples-per-epoch 16000 --samples-per-epoch-val 2000 --num-epochs 10 --gpus 0 \
-    --start-lr $lr --optimizer ranger --log logs/Bmeson_${model}_{auto}${suffix}.log --predict-output pred.root \
+    --batch-size 64 --samples-per-epoch 16000 --samples-per-epoch-val 2000 --num-epochs 1 --gpus 0 \
+    --start-lr $lr --optimizer adam --log logs/Bmeson_${model}_{auto}${suffix}.log --predict-output pred.root \
     --tensorboard Bmeson_${FEATURE_TYPE}_${model}${suffix} \
     --regression-mode \
     # open the regression-mode

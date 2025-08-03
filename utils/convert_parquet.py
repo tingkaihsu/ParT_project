@@ -31,13 +31,13 @@ def SetAKArr(filepath):
     _label4 = []
     _label5 = []
 
-    dirty = 0
-    first = 1
+    # dirty = 0
+    # first = 1
     n = 0
     #record the number of particles in one experiment
     for line in lines:
         if line.startswith('E'):
-            if (not n == 0 and not dirty):
+            if (not n == 0):
                 n_particles_ls.append(n)
                 #set up the larged list
                 px.append(px_ls)
@@ -65,7 +65,7 @@ def SetAKArr(filepath):
 
                 # mass
                 _label5.append(float(exp_inf[5]))
-            elif (n==0 and first):
+            else:
                 exp_inf = line.split()
                 _label1.append(float(exp_inf[1]))
                 _label2.append(float(exp_inf[2]))
@@ -73,34 +73,20 @@ def SetAKArr(filepath):
                 _label4.append(float(exp_inf[4])) 
 
                 _label5.append(float(exp_inf[5]))
-            first = 0
             n = 0
-            dirty = 0
         else:
             #we ignore the photon
             par = line.split()
-            if (int(par[1]) == 22):
-                dirty = 1
-                pdg_ls = []
-                px_ls = []
-                py_ls = []
-                pz_ls = []
-                energy_ls = []
-                charge_ls = []
-                mass_ls = []
+            ##particle +1
+            n = n + 1
+            px_ls.append(float(par[2]))
+            py_ls.append(float(par[3]))
+            pz_ls.append(float(par[4]))
+            energy_ls.append(float(par[5]))
+            mass_ls.append(float(par[6]))
+            charge_ls.append(float(par[0]))
 
-            if (not dirty):
-                par = line.split()
-                ##particle +1
-                n = n + 1
-                px_ls.append(float(par[2]))
-                py_ls.append(float(par[3]))
-                pz_ls.append(float(par[4]))
-                energy_ls.append(float(par[5]))
-                mass_ls.append(float(par[6]))
-                charge_ls.append(float(par[0]))
-
-                pdg_ls.append(float(par[1]))
+            pdg_ls.append(float(par[1]))
 
     px.append(px_ls)
     py.append(py_ls)
@@ -142,11 +128,11 @@ def readFile(data_in_filepath, parquet_out_filepath):
     # Define the schema
     schema = pa.schema([
         pa.field('label', pa.float64(), nullable=False),
-        pa.field('part_px', pa.large_list(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        pa.field('part_py', pa.large_list(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        pa.field('part_pz', pa.large_list(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        pa.field('part_energy', pa.large_list(pa.field('item', pa.float32(), nullable=False)), nullable=False),
-        pa.field('part_mass', pa.large_list(pa.field('item', pa.float32(), nullable=False)), nullable=False),
+        pa.field('part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
+        pa.field('part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
+        pa.field('part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
+        pa.field('part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
+        pa.field('part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
     ])
 
     data = SetAKArr(data_in_filepath)

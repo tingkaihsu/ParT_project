@@ -92,4 +92,48 @@ Result of 20 epochs, with 1 dropout layer,
 \section{Fixing DividedByZero Error}
 I change the precision of data from \textbf{float32} to \textbf{float64}, and this would at least decrease the probabilities of having zero in the data.
 
+\section{New Result: Brief Comparison of Particle Net and Particle Transformer}
+I run the training model first with standard configuration, and then find out the results are unsatisfied.
+Then, I downgrade the batch size, the learning rate, and increase the validation per epoch and the number of epoches.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/predPN1.pdf}
+    \caption{PN1}
+    \label{PN1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/predPN2.pdf}
+    \caption{PN2}
+    \label{PN2}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/predPN3.pdf}
+    \caption{PN3}
+    \label{PN3}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/predParT1.pdf}
+    \caption{ParT1}
+    \label{ParT1}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{figures/predParT2.pdf}
+    \caption{ParT2}
+    \label{ParT2}
+\end{figure}
+
+I found out that although the Particle Transformer seems to converge faster, but the prediction is biased, and the Particle Net can give a close prediction after training through $200$ epoches.
+Next step is to increase the size of the data.
+One can try to think about add some event shape variables that may be useful for training and identification.
+
+\section{Theoretical Background: Event Generator}
+This neural network is designed to reconstruct the mass of \(B^{+}\) meson from its final states.
+The decay event we simulate is not the direct \(B^{+}\) meson decay, but \( \Upsilon ( 4S ) \) decay to \( B^{\pm} \) pair.
+Now, we first analyze the structure of this event and the suitable event shape variables for its geometry.
+
 \end{document}
