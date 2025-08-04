@@ -65,14 +65,14 @@ if [[ "$model" == "PN-FineTune" ]]; then
 fi
 
 weaver \
-    --data-train "${DATADIR}/train_file.parquet" \
-    --data-test "${DATADIR}/test_file.parquet" \
+    --data-train "${DATADIR}/train.parquet" \
+    --data-test "${DATADIR}/test.parquet" \
     --data-config data/Bmeson/bm_${FEATURE_TYPE}.yaml --network-config $modelopts \
     --model-prefix training/Bmeson/${model}/{auto}${suffix}/net \
     --num-workers 1 --fetch-step 1 --in-memory --train-val-split 0.80 \
     --batch-size 64 --samples-per-epoch 16000 --samples-per-epoch-val 2000 --num-epochs 1 --gpus 0 \
     --start-lr $lr --optimizer adam --log logs/Bmeson_${model}_{auto}${suffix}.log --predict-output pred.root \
     --tensorboard Bmeson_${FEATURE_TYPE}_${model}${suffix} \
-    --regression-mode \
+    # --regression-mode \
     # open the regression-mode
     ${extraopts} "${@:3}"

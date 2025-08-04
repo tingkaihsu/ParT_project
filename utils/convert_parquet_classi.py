@@ -332,7 +332,7 @@ def SetAKArr(filepath):
 def readFile(data_in_filepath, parquet_out_filepath):
     # You need to decide which fields to include; here I included part_charge and part_pdg as well
     schema = pa.schema([
-        pa.field('label', pa.float64(), nullable=False),
+        pa.field('label', pa.int64(), nullable=False),
         pa.field('part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
         pa.field('part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
         pa.field('part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
@@ -355,5 +355,5 @@ def readFile(data_in_filepath, parquet_out_filepath):
 
 # Example usage
 # readFile('../raw_data/train.txt', '../data/Bmeson/train_file.parquet')
-readFile('../event_shape_analysis/hepMCtest', '../data/Bmeson/testing_file.parquet')
-# readFile('../raw_data/testing.txt', '../data/Bmeson/testing_file.parquet')
+readFile('../full_hep_data/hepMCtrain', '../data/Bmeson/train.parquet')
+readFile('../full_hep_data/hepMCtest', '../data/Bmeson/test.parquet')

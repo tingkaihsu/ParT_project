@@ -22,9 +22,13 @@ class ParticleTransformerWrapper(torch.nn.Module):
     #     return self.mod(features, v=lorentz_vectors, mask=mask)
     
     # For multi-class classification
+    # def forward(self, points, features, lorentz_vectors, mask):
+    #     logits = self.mod(features, v=lorentz_vectors, mask=mask)
+    #     return torch.softmax(logits, dim=-1)  # Apply softmax for multi-class classification
+    
     def forward(self, points, features, lorentz_vectors, mask):
         logits = self.mod(features, v=lorentz_vectors, mask=mask)
-        return torch.softmax(logits, dim=-1)  # Apply softmax for multi-class classification
+        return logits  # Return raw logits without softmax
 
 def get_model(data_config, **kwargs):
 
@@ -55,12 +59,13 @@ def get_model(data_config, **kwargs):
 
     model_info = {
         'input_names': list(data_config.input_names),
-        # 'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
-        # 'output_names': ['softmax'],
-        # 'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'softmax': {0: 'N'}}},
         'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
-        'output_names': ['linear'],
-        'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'linear': {0: 'N'}}},
+        'output_names': ['softmax'],
+        'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'softmax': {0: 'N'}}},
+
+        # 'input_shapes': {k: ((1,) + s[1:]) for k, s in data_config.input_shapes.items()},
+        # 'output_names': ['linear'],
+        # 'dynamic_axes': {**{k: {0: 'N', 2: 'n_' + k.split('_')[0]} for k in data_config.input_names}, **{'linear': {0: 'N'}}},
     }
     return model, model_info
 

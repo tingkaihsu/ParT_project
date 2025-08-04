@@ -12,7 +12,8 @@ new_variables:
    # part_logptrel: np.log(part_pt/jet_pt)
    # part_logerel: np.log(part_energy/jet_energy)
    # part_deltaR: np.hypot(part_deta, part_dphi)
-   mass: label
+   is_B: label
+   is_not: 1- label
    # jet_isQ: label
    # jet_isG: 1-label
 
@@ -68,14 +69,16 @@ labels:
    ### [option 1] use `simple` for binary/multi-class classification, then `value` is a list of 0-1 labels
    # type: simple 
    # value: [jet_isQ, jet_isG]
-   #this is for classification
+   # this is for classification
 
    ### [option 2] otherwise use `custom` to define the label, then `value` is a map
-   type: custom
-   value: 
-      truth_label: mass
-   # type: simple
-   # value: [mass]
+   # type: custom
+   # value: 
+   #    truth_label: mass
+   # this is for regression
+
+   type: simple
+   value: [is_B, is_not]
 observers:
    # - jet_pt
    # - jet_eta
