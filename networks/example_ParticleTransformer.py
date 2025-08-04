@@ -16,10 +16,15 @@ class ParticleTransformerWrapper(torch.nn.Module):
     @torch.jit.ignore
     def no_weight_decay(self):
         return {'mod.cls_token', }
-
+    
+    # For regression
+    # def forward(self, points, features, lorentz_vectors, mask):
+    #     return self.mod(features, v=lorentz_vectors, mask=mask)
+    
+    # For multi-class classification
     def forward(self, points, features, lorentz_vectors, mask):
-        return self.mod(features, v=lorentz_vectors, mask=mask)
-
+        logits = self.mod(features, v=lorentz_vectors, mask=mask)
+        return torch.softmax(logits, dim=-1)  # Apply softmax for multi-class classification
 
 def get_model(data_config, **kwargs):
 
@@ -60,5 +65,5 @@ def get_model(data_config, **kwargs):
     return model, model_info
 
 def get_loss(data_config, **kwargs):
-    # return torch.nn.CrossEntropyLoss()
-    return torch.nn.MSELoss()   #MSE for regression
+    return torch.nn.CrossEntropyLoss()  # Use CrossEntropyLoss for classification
+    # return torch.nn.MSELoss()   # MSE for regression
