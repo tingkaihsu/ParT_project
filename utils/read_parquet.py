@@ -2,8 +2,8 @@ import pandas as pd
 def readFile(filepath, filepath1):
     df = pd.read_parquet(filepath)
     df1 = pd.read_parquet(filepath1)
-    print(df['label'])
-    print(df1['label'])
+    print(df['part_px'])
+    print(df1['thrust'])
     # df1['part_px'][0] = df['part_px'][0]
     # print(df1['part_px'][0])
     del df

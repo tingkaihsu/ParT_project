@@ -269,15 +269,10 @@ for i in range(len(total_final_state_px_arr)):
 
     thrust_axis = get_thrust_axis(px, py, pz)
     thrust = get_thrust(px, py, pz, thrust_axis)
-        # Calculate the momentum tensor and its eigenvalues
+    # Calculate the momentum tensor and its eigenvalues
     eigenvalues = get_Q(px, py, pz)
 
     # Calculate sphericity and aplanarity
-    sphericity = get_sphericity(eigenvalues)
-    aplanarity = get_aplanarity(eigenvalues)
-    
-    # print(f"Event {i}: Thrust axis = {thrust_axis}, Thrust = {thrust:.4f}, Sphericity = {sphericity:.4f}, Aplanarity = {aplanarity:.4f}")
-   # Calculate sphericity and aplanarity
     sphericity = get_sphericity(eigenvalues)
     aplanarity = get_aplanarity(eigenvalues)
 

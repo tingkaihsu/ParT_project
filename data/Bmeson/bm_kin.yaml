@@ -29,7 +29,7 @@ inputs:
       pad_mode: wrap
       vars: 
          - [part_px, null]
-         # - [part_py, null]
+         - [part_py, null]
          # - [part_pz, null]
    pf_features:
       length: 128
@@ -38,9 +38,11 @@ inputs:
          - [part_px, null]
          - [part_py, null]
          - [part_pz, null]
-         # - [part_energy, null]
-
-         # - [part_mass, null]
+         - [part_energy, null]
+         - [part_mass, null]
+         # - [thrust, null]
+         # - [sphericity, null]
+         # - [aplanarity, null]
          # - [part_charge, null]
       ### [format 1]: var_name (no transformation)
       ### [format 2]: [var_name, 
@@ -63,6 +65,14 @@ inputs:
       pad_mode: constant
       vars: 
          - [part_mask, null]
+      
+   event_features:
+      length: 1
+      pad_mode: constant
+      vars:
+      - [thrust]
+      - [sphericity]
+      - [aplanarity]
 
 labels:
    ### type can be `simple`, `custom`
@@ -79,6 +89,7 @@ labels:
 
    type: simple
    value: [is_B, is_not]
+
 observers:
    # - jet_pt
    # - jet_eta

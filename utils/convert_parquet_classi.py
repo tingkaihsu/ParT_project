@@ -316,12 +316,35 @@ def SetAKArr(filepath):
         total_final_state_energy_arr.append(energy_s)
         total_final_state_mass_arr.append(mass_s)
 
+    total_final_state_thrust_arr = []
+    total_final_state_sphericity = []
+    total_final_state_aplanarity = []
+    for i in range( len(total_final_state_px_arr) ):
+        px = total_final_state_px_arr[i]
+        py = total_final_state_py_arr[i]
+        pz = total_final_state_pz_arr[i]
+        thrust_axis = get_thrust_axis(px, py, pz)
+        thrust = get_thrust(px, py, pz, thrust_axis)
+        # Calculate the momentum tensor and its eigenvalues
+        eigenvalues = get_Q(px, py, pz)
+
+        # Calculate sphericity and aplanarity
+        sphericity = get_sphericity(eigenvalues)
+        aplanarity = get_aplanarity(eigenvalues)
+
+        total_final_state_thrust_arr.append(thrust)
+        total_final_state_sphericity.append(sphericity)
+        total_final_state_aplanarity.append(aplanarity)
+
     v = {
         'part_px': total_final_state_px_arr,
         'part_py': total_final_state_py_arr,
         'part_pz': total_final_state_pz_arr,
         'part_energy': total_final_state_energy_arr,
         'part_mass': total_final_state_mass_arr,
+        'thrust': total_final_state_thrust_arr,
+        'sphericity': total_final_state_sphericity,
+        'aplanarity': total_final_state_aplanarity,
         'label': np.stack(_label, axis=-1)  # Shape: (num_experiments,)
     }
     return v
@@ -332,12 +355,15 @@ def SetAKArr(filepath):
 def readFile(data_in_filepath, parquet_out_filepath):
     # You need to decide which fields to include; here I included part_charge and part_pdg as well
     schema = pa.schema([
-        pa.field('label', pa.int64(), nullable=False),
-        pa.field('part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False)
+        pa.field( 'label', pa.int64(), nullable=False),
+        pa.field( 'part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'thrust', pa.float64(), nullable=False ),
+        pa.field( 'sphericity', pa.float64(), nullable=False ),
+        pa.field( 'aplanarity', pa.float64(), nullable=False ),
     ])
 
     data = SetAKArr(data_in_filepath)
