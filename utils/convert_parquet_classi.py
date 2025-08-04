@@ -174,139 +174,177 @@ def get_final_states(filepath):
         other_vertices = []
 
         return B_plus_final_states_arr, B_minus_final_states_arr, other_final_states_arr
-
-
 def SetAKArr(filepath):
-    """
-    Process the raw input file and compute the thrust for each experiment.
+    B_plus_arr, B_minus_arr, other_arr = get_final_states( filepath )
+
+    B_plus_final_state_px_arr = []
+    B_plus_final_state_py_arr = []
+    B_plus_final_state_pz_arr = []
+
+    B_plus_final_state_energy_arr = []
+    B_plus_final_state_mass_arr = []
+
+    for B_meson in B_plus_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in B_meson:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
+
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+        B_plus_final_state_px_arr.append(px_s)
+        B_plus_final_state_py_arr.append(py_s)
+        B_plus_final_state_pz_arr.append(pz_s)
+        B_plus_final_state_energy_arr.append(energy_s)
+        B_plus_final_state_mass_arr.append(mass_s)
+
+
+    B_minus_final_state_px_arr = []
+    B_minus_final_state_py_arr = []
+    B_minus_final_state_pz_arr = []
+
+    B_minus_final_state_energy_arr = []
+    B_minus_final_state_mass_arr = []
+
+    for B_meson in B_minus_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in B_meson:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
+
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+        B_minus_final_state_px_arr.append(px_s)
+        B_minus_final_state_py_arr.append(py_s)
+        B_minus_final_state_pz_arr.append(pz_s)
+        B_minus_final_state_energy_arr.append(energy_s)
+        B_minus_final_state_mass_arr.append(mass_s)
+
+    other_final_state_px_arr = []
+    other_final_state_py_arr = []
+    other_final_state_pz_arr = []
+
+    other_final_state_energy_arr = []
+    other_final_state_mass_arr = []
+
+    for others in other_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in others:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
+
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+
+        other_final_state_px_arr.append(px_s)
+        other_final_state_py_arr.append(py_s)
+        other_final_state_pz_arr.append(pz_s)
+        other_final_state_energy_arr.append(energy_s)
+        other_final_state_mass_arr.append(mass_s)
+
+    _label = []
     
-    Parameters:
-    - filepath: Path to the input text file containing particle data.
-    
-    Returns:
-    - A dictionary with processed data (particle momenta, labels, etc.).
-    """
-    with open(filepath, 'r') as file:
-        lines = file.readlines()
+    total_arr = []
 
-    # Initialize lists for storing data
-    px, py, pz, energy, mass, charge, pdg, thrust, jetiness, sphericality = [], [], [], [], [], [], [], [], [], []
-    px_ls, py_ls, pz_ls, energy_ls, mass_ls, charge_ls, pdg_ls = [], [], [], [], [], [], []
-    _label1, _label2, _label3, _label4, _label5 = [], [], [], [], []
+    for B_plus, B_minus, others in zip(B_plus_arr, B_minus_arr, other_arr):
+        if len(B_plus) == 0 and len(B_minus) == 0:
+            total = others
+            _label.append( False )
+        else:
+            total = B_plus + B_minus
+            _label.append( True )
+        total_arr.append( total )
 
-    n = 0
-    for line in lines:
-        if line.startswith('E'):  # Event header line
-            if n != 0:
-                # Store the particle data for the current event
-                px.append(np.array(px_ls, dtype=float))
-                py.append(np.array(py_ls, dtype=float))
-                pz.append(np.array(pz_ls, dtype=float))
-                energy.append(np.array(energy_ls, dtype=float))
-                mass.append(np.array(mass_ls, dtype=float))
-                charge.append(np.array(charge_ls, dtype=int))
-                pdg.append(np.array(pdg_ls, dtype=int))
+    total_final_state_px_arr = []
+    total_final_state_py_arr = []
+    total_final_state_pz_arr = []
 
+    total_final_state_energy_arr = []
+    total_final_state_mass_arr = []
 
-                # Check for photons (pdg code 22)
-                for p in pdg_ls:
-                    if p == 22:
-                        print("Warning: Photon detected!")
-                thrust.append(thrust_value)
-                sphericality.append(sph_value)
-                jetiness.append(jetiness_value)
-                # Clear the per-experiment lists
-                px_ls, py_ls, pz_ls, energy_ls, mass_ls, charge_ls, pdg_ls = [], [], [], [], [], [], []
+    for B_meson in total_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in B_meson:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
 
-            # Parse experiment labels from the header line
-            exp_inf = line.split()
-            _label1.append(float(exp_inf[1]))
-            _label2.append(float(exp_inf[2]))
-            _label3.append(float(exp_inf[3]))
-            _label4.append(float(exp_inf[4]))
-            _label5.append(float(exp_inf[5]))
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+        total_final_state_px_arr.append(px_s)
+        total_final_state_py_arr.append(py_s)
+        total_final_state_pz_arr.append(pz_s)
+        total_final_state_energy_arr.append(energy_s)
+        total_final_state_mass_arr.append(mass_s)
 
-            n = 0  # Reset particle count for the next experiment
-        else:  # Particle data line
-            par = line.split()
-            if float(par[1]) == 22:  # Ignore photons (pdg == 22)
-                continue
-            else:
-                n += 1
-                # Append particle data to respective lists
-                charge_ls.append(int(par[0]))
-                pdg_ls.append(int(par[1]))
-                px_ls.append(float(par[2]))
-                py_ls.append(float(par[3]))
-                pz_ls.append(float(par[4]))
-                energy_ls.append(float(par[5]))
-                mass_ls.append(float(par[6]))
-
-    # Append the last experiment data (after file ends)
-    if n > 0:
-        px.append(np.array(px_ls, dtype=float))
-        py.append(np.array(py_ls, dtype=float))
-        pz.append(np.array(pz_ls, dtype=float))
-        energy.append(np.array(energy_ls, dtype=float))
-        mass.append(np.array(mass_ls, dtype=float))
-        charge.append(np.array(charge_ls, dtype=int))
-        pdg.append(np.array(pdg_ls, dtype=int))
-
-        # Calculate thrust for the current event
-        thrust_value = get_thrust(px_ls, py_ls, pz_ls)
-        sph_value = get_sphericality(px_ls,py_ls,pz_ls)
-        jetiness_value = get_jetiness(px_ls,py_ls,pz_ls,energy_ls)
-        # if sph_value == 0:
-        #     print(f"Thrust Value: {thrust_value}")
-        #     print(f"Sphericality: {sph_value}")
-        #     print(f"Jetiness: {jetiness_value}")
-        thrust.append(thrust_value)
-        sphericality.append(sph_value)
-        jetiness.append(jetiness_value)
-    # Construct the final dictionary for output
     v = {
-        'part_px': px,
-        'part_py': py,
-        'part_pz': pz,
-        'part_energy': energy,
-        'part_mass': mass,
-        'part_charge': charge,
-        'part_pdg': pdg,
-        'thrust': thrust,
-        'sphericality': sphericality,
-        'jetiness': jetiness,
-        'label': np.stack(_label5, axis=-1)  # Shape: (num_experiments,)
+        'part_px': total_final_state_px_arr,
+        'part_py': total_final_state_py_arr,
+        'part_pz': total_final_state_pz_arr,
+        'part_energy': total_final_state_energy_arr,
+        'part_mass': total_final_state_mass_arr,
+        'label': np.stack(_label, axis=-1)  # Shape: (num_experiments,)
     }
-
-    # Check for NaNs in the particle data (optional but recommended)
-    for arr_list in [px, py, pz, energy, mass]:
-        for arr in arr_list:
-            if np.isnan(arr).any():
-                logging.warning('NaN detected in data arrays!')
-
     return v
+
+# SetAKArr( "../event_shape_analysis/hepMCtest" )
 
 
 def readFile(data_in_filepath, parquet_out_filepath):
     # You need to decide which fields to include; here I included part_charge and part_pdg as well
     schema = pa.schema([
         pa.field('label', pa.float64(), nullable=False),
-        pa.field('jetiness', pa.float64(), nullable=False),
-        pa.field('thrust', pa.float64(), nullable=False),
-        pa.field('sphericality', pa.float64(), nullable=False),
         pa.field('part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
         pa.field('part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
         pa.field('part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
         pa.field('part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_charge', pa.large_list(pa.field('item', pa.int32(), nullable=False)), nullable=False)
+        pa.field('part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False)
     ])
 
     data = SetAKArr(data_in_filepath)
 
     # Create a DataFrame, converting numpy arrays to lists for pandas compatibility
     df = pd.DataFrame({
-        key: [arr.tolist() if isinstance(arr, (list, np.ndarray)) else arr for arr in val]  # Handle list or ndarray
+        key: [arr.tolist() if isinstance(arr, (np.ndarray)) else arr for arr in val]  # Handle list or ndarray
         for key, val in data.items()
     })
 
@@ -316,6 +354,6 @@ def readFile(data_in_filepath, parquet_out_filepath):
 
 
 # Example usage
-readFile('../raw_data/train.txt', '../data/Bmeson/train_file.parquet')
-readFile('../raw_data/test.txt', '../data/Bmeson/test_file.parquet')
+# readFile('../raw_data/train.txt', '../data/Bmeson/train_file.parquet')
+readFile('../event_shape_analysis/hepMCtest', '../data/Bmeson/testing_file.parquet')
 # readFile('../raw_data/testing.txt', '../data/Bmeson/testing_file.parquet')
