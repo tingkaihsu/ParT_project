@@ -174,6 +174,7 @@ def get_final_states(filepath):
         other_vertices = []
 
         return B_plus_final_states_arr, B_minus_final_states_arr, other_final_states_arr
+    
 def SetAKArr(filepath):
     B_plus_arr, B_minus_arr, other_arr = get_final_states( filepath )
 
@@ -184,29 +185,37 @@ def SetAKArr(filepath):
     B_plus_final_state_energy_arr = []
     B_plus_final_state_mass_arr = []
 
+    B_plus_final_state_pdgid_arr = []
+
     for B_meson in B_plus_arr:
         px_s = []
         py_s = []
         pz_s = []
         energy_s = []
         mass_s = []
+        pdgid_s = []
+
         for final_states in B_meson:
             final_state_px = final_states[1]
             final_state_py = final_states[2]
             final_state_pz = final_states[3]
             final_state_energy = final_states[4]
             final_state_mass = final_states[5]
+            final_state_pdgid = final_states[0]
 
             px_s.append(final_state_px)
             py_s.append(final_state_py)
             pz_s.append(final_state_pz)
             energy_s.append(final_state_energy)
             mass_s.append(final_state_mass)
+            pdgid_s.append(final_state_pdgid)
+
         B_plus_final_state_px_arr.append(px_s)
         B_plus_final_state_py_arr.append(py_s)
         B_plus_final_state_pz_arr.append(pz_s)
         B_plus_final_state_energy_arr.append(energy_s)
         B_plus_final_state_mass_arr.append(mass_s)
+        B_plus_final_state_pdgid_arr.append(pdgid_s)
 
 
     B_minus_final_state_px_arr = []
@@ -215,6 +224,8 @@ def SetAKArr(filepath):
 
     B_minus_final_state_energy_arr = []
     B_minus_final_state_mass_arr = []
+    
+    B_minus_final_state_pdgid_arr = []
 
     for B_meson in B_minus_arr:
         px_s = []
@@ -222,23 +233,28 @@ def SetAKArr(filepath):
         pz_s = []
         energy_s = []
         mass_s = []
+        pdgid_s = []
         for final_states in B_meson:
             final_state_px = final_states[1]
             final_state_py = final_states[2]
             final_state_pz = final_states[3]
             final_state_energy = final_states[4]
             final_state_mass = final_states[5]
+            final_state_pdgid = final_states[0]
 
             px_s.append(final_state_px)
             py_s.append(final_state_py)
             pz_s.append(final_state_pz)
             energy_s.append(final_state_energy)
             mass_s.append(final_state_mass)
+            pdgid_s.append(final_state_pdgid)
+
         B_minus_final_state_px_arr.append(px_s)
         B_minus_final_state_py_arr.append(py_s)
         B_minus_final_state_pz_arr.append(pz_s)
         B_minus_final_state_energy_arr.append(energy_s)
         B_minus_final_state_mass_arr.append(mass_s)
+        B_minus_final_state_pdgid_arr.append(pdgid_s)
 
     other_final_state_px_arr = []
     other_final_state_py_arr = []
@@ -247,30 +263,37 @@ def SetAKArr(filepath):
     other_final_state_energy_arr = []
     other_final_state_mass_arr = []
 
+    other_final_state_pdgid_arr = []
+
     for others in other_arr:
         px_s = []
         py_s = []
         pz_s = []
         energy_s = []
         mass_s = []
+        pdgid_s = []
+
         for final_states in others:
             final_state_px = final_states[1]
             final_state_py = final_states[2]
             final_state_pz = final_states[3]
             final_state_energy = final_states[4]
             final_state_mass = final_states[5]
+            final_state_pdgid = final_states[0]
 
             px_s.append(final_state_px)
             py_s.append(final_state_py)
             pz_s.append(final_state_pz)
             energy_s.append(final_state_energy)
             mass_s.append(final_state_mass)
+            pdgid_s.append(final_state_pdgid)
 
         other_final_state_px_arr.append(px_s)
         other_final_state_py_arr.append(py_s)
         other_final_state_pz_arr.append(pz_s)
         other_final_state_energy_arr.append(energy_s)
         other_final_state_mass_arr.append(mass_s)
+        other_final_state_pdgid_arr.append(pdgid_s)
 
     _label = []
     
@@ -291,6 +314,7 @@ def SetAKArr(filepath):
 
     total_final_state_energy_arr = []
     total_final_state_mass_arr = []
+    total_final_state_pdgid_arr = []
 
     for B_meson in total_arr:
         px_s = []
@@ -298,23 +322,29 @@ def SetAKArr(filepath):
         pz_s = []
         energy_s = []
         mass_s = []
+        pdgid_s = []
+
         for final_states in B_meson:
             final_state_px = final_states[1]
             final_state_py = final_states[2]
             final_state_pz = final_states[3]
             final_state_energy = final_states[4]
             final_state_mass = final_states[5]
+            final_state_pdgid = final_states[0]
 
             px_s.append(final_state_px)
             py_s.append(final_state_py)
             pz_s.append(final_state_pz)
             energy_s.append(final_state_energy)
             mass_s.append(final_state_mass)
+            pdgid_s.append(final_state_pdgid)
+
         total_final_state_px_arr.append(px_s)
         total_final_state_py_arr.append(py_s)
         total_final_state_pz_arr.append(pz_s)
         total_final_state_energy_arr.append(energy_s)
         total_final_state_mass_arr.append(mass_s)
+        total_final_state_pdgid_arr.append(pdgid_s)
 
     total_final_state_thrust_arr = []
     total_final_state_sphericity = []
@@ -342,6 +372,7 @@ def SetAKArr(filepath):
         'part_pz': total_final_state_pz_arr,
         'part_energy': total_final_state_energy_arr,
         'part_mass': total_final_state_mass_arr,
+        'part_pdgid': total_final_state_pdgid_arr,
         'thrust': total_final_state_thrust_arr,
         'sphericity': total_final_state_sphericity,
         'aplanarity': total_final_state_aplanarity,
@@ -361,9 +392,10 @@ def readFile(data_in_filepath, parquet_out_filepath):
         pa.field( 'part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
         pa.field( 'part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
         pa.field( 'part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
-        pa.field( 'thrust', pa.float64(), nullable=False ),
-        pa.field( 'sphericity', pa.float64(), nullable=False ),
-        pa.field( 'aplanarity', pa.float64(), nullable=False ),
+        pa.field( 'part_pdgid', pa.large_list(pa.field('item', pa.int32(), nullable =False)), nullable=False),
+        # pa.field( 'thrust', pa.float64(), nullable=False ),
+        # pa.field( 'sphericity', pa.float64(), nullable=False ),
+        # pa.field( 'aplanarity', pa.float64(), nullable=False ),
     ])
 
     data = SetAKArr(data_in_filepath)

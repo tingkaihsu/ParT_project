@@ -1,99 +1,81 @@
 selection:
-   ### use `&`, `|`, `~` for logical operations on numpy arrays
-   ### can use functions from `math`, `np` (numpy), and `awkward` in the expression
+  ### (keep your existing logic)
 
 new_variables:
-   ### [format] name: formula
-   ### can use functions from `math`, `np` (numpy), and `awkward` in the expression
-   part_mask: ak.ones_like(part_px)
-   # part_pt: np.hypot(part_px, part_py)
-   # part_pt_log: np.log(part_pt)
-   # part_e_log: np.log(part_energy)
-   # part_logptrel: np.log(part_pt/jet_pt)
-   # part_logerel: np.log(part_energy/jet_energy)
-   # part_deltaR: np.hypot(part_deta, part_dphi)
-   is_B: label
-   is_not: 1- label
-   # jet_isQ: label
-   # jet_isG: 1-label
+  part_mask: ak.ones_like(part_px)
+  part_pt: np.hypot(part_px, part_py)
+  part_eta: np.arcsinh(part_pz / np.maximum(part_pt, 1e-8))
+  part_phi: np.arctan2(part_py, part_px)
+  # part_ptrel: part_pt / jet_pt
+  part_deltaR: np.hypot(part_eta, part_phi)
+  # part_logptrel: np.log(np.maximum(part_ptrel, 1e-8))
+  # jet_pt: ak.sum(part_pt, axis=1)
+  # jet_energy: ak.sum(part_energy, axis=1)
+  is_B: label
+  is_not: 1 - label
 
 preprocess:
-  ### method: [manual, auto] - whether to use manually specified parameters for variable standardization
-  method: manual
-  ### data_fraction: fraction of events to use when calculating the mean/scale for the standardization
+  method: auto
   data_fraction: 0.9
 
 inputs:
-   pf_points:
-      length: 128
-      pad_mode: wrap
-      vars: 
-         - [part_px, null]
-         - [part_py, null]
-         # - [part_pz, null]
-   pf_features:
-      length: 128
-      pad_mode: wrap
-      vars: 
-         - [part_px, null]
-         - [part_py, null]
-         - [part_pz, null]
-         - [part_energy, null]
-         - [part_mass, null]
-         # - [thrust, null]
-         # - [sphericity, null]
-         # - [aplanarity, null]
-         # - [part_charge, null]
-      ### [format 1]: var_name (no transformation)
-      ### [format 2]: [var_name, 
-      ###              subtract_by(optional, default=None, no transf. if preprocess.method=manual, auto transf. if preprocess.method=auto), 
-      ###              multiply_by(optional, default=1), 
-      ###              clip_min(optional, default=-5), 
-      ###              clip_max(optional, default=5), 
-      ###              pad_value(optional, default=0)]
-   pf_vectors:
-      length: 128
-      pad_mode: wrap
-      vars: 
-         - [part_px, null]
-         - [part_py, null]
-         - [part_pz, null]
-         - [part_energy, null]
-         # - [part_mass, null]
-   pf_mask:
-      length: 128
-      pad_mode: constant
-      vars: 
-         - [part_mask, null]
-      
-   event_features:
-      length: 1
-      pad_mode: constant
-      vars:
-      - [thrust]
-      - [sphericity]
-      - [aplanarity]
+  pf_points:
+    length: 128
+    pad_mode: constant
+    pad_value: 0.0
+    vars: 
+      - [part_px, null]
+      - [part_py, null]
+  
+  pf_features:
+    length: 128
+    pad_mode: constant
+    pad_value: 0.0
+    vars: 
+      - [part_pt, null]
+      - [part_eta, null]
+      - [part_phi, null]
+      # - [part_ptrel, null]
+      - [part_deltaR, null]
+      # - [part_logptrel, null]
+      - [part_mass, null]
+      - [part_pdgid, null]
+  
+  pf_vectors:
+    length: 128
+    pad_mode: constant
+    pad_value: 0.0
+    vars: 
+      - [part_px, null]
+      - [part_py, null]
+      - [part_pz, null]
+      - [part_energy, null]
+  
+  pf_mask:
+    length: 128
+    pad_mode: constant
+    pad_value: 0.0
+    vars: 
+      - [part_mask, null]
+  
+  # event_features:
+  #   length: 1
+  #   pad_mode: constant
+  #   pad_value: 0.0
+  #   vars:
+  #     - [thrust]
+  #     - [sphericity]
+  #     - [aplanarity]
+  #     - [jet_pt]
+  #     - [jet_energy]
 
 labels:
-   ### type can be `simple`, `custom`
-   ### [option 1] use `simple` for binary/multi-class classification, then `value` is a list of 0-1 labels
-   # type: simple 
-   # value: [jet_isQ, jet_isG]
-   # this is for classification
-
-   ### [option 2] otherwise use `custom` to define the label, then `value` is a map
-   # type: custom
-   # value: 
-   #    truth_label: mass
-   # this is for regression
-
-   type: simple
-   value: [is_B, is_not]
+  type: simple
+  value: [is_B, is_not]
 
 observers:
-   # - jet_pt
-   # - jet_eta
-   - part_energy
-   - part_mass
+  - part_energy
+  - part_mass
 
 weights:
+#   weight: np.where(is_B > 0.5, 3.0, 1.0)  # Adjust ratio based on imbalance

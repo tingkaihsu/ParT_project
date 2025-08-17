@@ -8,292 +8,360 @@ from sklearn.decomposition import PCA
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
 
+def get_thrust_axis(px_s, py_s, pz_s):
+    if len(px_s) == 0 or len(py_s) == 0 or len(pz_s) == 0:
+        raise ValueError("Empty momentum components passed to get_thrust_axis.")
 
-import numpy as np
-from sklearn.decomposition import PCA
-
-def get_jetiness(px, py, pz, energy):
-    """
-    Compute jetiness for a collection of particles using the thrust axis.
-
-    Parameters:
-    - px, py, pz: Lists or arrays of particle momenta components.
-    - energy: List or array of particle energies.
-
-    Returns:
-    - jetiness: Jetiness value, a measure of the collimation of the event.
-    """
-    
-    # Convert inputs to numpy arrays
-    px = np.array(px)
-    py = np.array(py)
-    pz = np.array(pz)
-    energy = np.array(energy)
-
-    # If there is only one particle, treat it as a pencil-like (strong jet-like) event
-    if len(px) == 1:
-        # In this case, the event is a single particle, which is essentially collimated
-        # Jetiness is very small (ideally zero), as there is no spread
-        # print("Single particle event - treated as strong jet/pencil-like.")
-        return 0.0  # Jetiness is zero for a single particle (no spread)
-
-    # Step 1: Calculate the thrust axis using PCA (Principal Component Analysis)
-    # Combine the momentum components into a single matrix (rows: particles, columns: px, py, pz)
-    momenta = np.vstack((px, py, pz)).T
-    
-    # Apply PCA to find the thrust axis (direction of maximum momentum concentration)
+    particles_momenta = np.vstack((px_s, py_s, pz_s)).T
     pca = PCA(n_components=1)
-    pca.fit(momenta)
+    pca.fit(particles_momenta)
+    return pca.components_[0]
+
+def get_thrust(px, py, pz, thrust_axis):
+    total_momentum_magnitude = 0
+    projected_momentum_sum = 0
+
+    for i in range(len(px)):
+        momentum_vec = np.array([px[i], py[i], pz[i]])
+        momentum_mag = np.linalg.norm(momentum_vec)
+        projection = np.abs(np.dot(momentum_vec, thrust_axis))
+        
+        total_momentum_magnitude += momentum_mag
+        projected_momentum_sum += projection
+
+    if total_momentum_magnitude == 0:
+        return 0.0  # avoid division by zero
+
+    thrust = projected_momentum_sum / total_momentum_magnitude
+    return thrust
+
+def get_Q(particles_px, particles_py, particles_pz):
+    # Create momentum components array
+    p = np.vstack([particles_px, particles_py, particles_pz]).T  # Shape (n_particles, 3)
     
-    # The first principal component is the thrust axis (normalize it)
-    thrust_axis = pca.components_[0]
-    thrust_axis = thrust_axis / np.linalg.norm(thrust_axis)  # Normalize the thrust axis
-
-    # Step 2: Calculate jetiness using the thrust axis
-    # Compute transverse momentum for each particle
-    pt = np.sqrt(px**2 + py**2)
+    # Normalize the momenta
+    total_p2 = np.sum(np.linalg.norm(p, axis=1)**2)  # Sum of p^2 for each particle
+    p2 = np.linalg.norm(p, axis=1)**2  # p^2 for each particle
     
-    # Compute the pseudorapidity (eta) and azimuthal angle (phi) for each particle
-    eta = 0.5 * np.log((energy + pz) / (energy - pz))
-    phi = np.arctan2(py, px)
+    # Construct the momentum tensor M_ab
+    M_ab = np.zeros((3, 3))  # 3x3 matrix
     
-    # Step 3: Compute the distance (ΔR) between each particle and the thrust axis
-    # The thrust axis is represented as a unit vector (thrust_axis)
-    delta_phi = phi - np.arctan2(thrust_axis[1], thrust_axis[0])
-    delta_eta = eta - np.arcsinh(thrust_axis[2])  # Use arcsinh for pseudorapidity
-    delta_R = np.sqrt(delta_phi**2 + delta_eta**2)
+    for i in range(len(particles_px)):
+        # Outer product of momentum components (p_a * p_b)
+        M_ab += np.outer(p[i], p[i])  # Outer product (p_a * p_b)
     
-    # Step 4: Compute jetiness: sum of pt * ΔR for all particles
-    jetiness = np.sum(pt * delta_R)
+    M_ab /= total_p2  # Normalize by sum(p^2)
 
-    return jetiness
+    eigenvalues, eigenvectors = np.linalg.eigh(M_ab)  # eigenvalues are sorted in ascending order
+    eigenvalues = np.sort(eigenvalues)[::-1]  # Sort eigenvalues in descending order
 
+    return eigenvalues
 
-def get_thrust(px, py, pz):
-    """
-    Calculate thrust for a given set of particles based on their momenta (px, py, pz).
-    
-    Parameters:
-    - px, py, pz: Arrays of particle momentum components in x, y, z directions.
-    
-    Returns:
-    - thrust_value: The calculated thrust value.
-    """
-    # Convert to NumPy arrays
-    px, py, pz = np.array(px), np.array(py), np.array(pz)
+def get_sphericity(eigenvalues):
+    # Compute sphericity
+    lambda1, lambda2, lambda3 = eigenvalues
+    sphericity = (3/2) * ( lambda2 + lambda3 )
+    return sphericity
 
-    # Remove zero-momentum particles to avoid division by zero or irrelevant calculations
-    norms = np.sqrt(px**2 + py**2 + pz**2)
-    mask = norms > 1e-15  # Remove particles with very small momentum
-    px, py, pz, norms = px[mask], py[mask], pz[mask], norms[mask]
+def get_aplanarity(eigenvalues):
+    # Compute aplanarity
+    lambda1, lambda2, lambda3 = eigenvalues
+    aplanarity = (3/2) * lambda3
+    return aplanarity
 
-    if len(px) < 2:  # Handle the case where no valid particles are left
-        thrust_value = 1
-        return thrust_value
-
-    # Create momenta array for PCA
-    momenta = np.vstack((px, py, pz)).T
-
-    # Apply PCA to find the thrust axis (direction of maximum momentum)
-    pca = PCA(n_components=1)
-    pca.fit(momenta)
-    thrust_axis = pca.components_[0]
-
-    # Normalize the thrust axis
-    thrust_axis /= np.linalg.norm(thrust_axis)
-
-    # Calculate thrust value: dot product of momenta with thrust axis, normalized by total momentum
-    dot_products = np.abs(np.dot(momenta, thrust_axis))  # |p · n|
-    total_momentum = np.sum(norms)  # ∑|p|
-    thrust_value = np.sum(dot_products) / total_momentum
-
-    return thrust_value
-
-import numpy as np
-from sklearn.decomposition import PCA
-
-def get_sphericality(px, py, pz):
-    """
-    Calculate the sphericality of a system of particles based on their momenta.
-    
-    Parameters:
-    - px, py, pz: Arrays of particle momentum components in x, y, z directions.
-    
-    Returns:
-    - sphericality: The computed sphericality value (NaN for single-particle events).
-    """
-    # Convert to NumPy arrays
-    px, py, pz = np.array(px), np.array(py), np.array(pz)
-
-    # Remove zero-momentum particles to avoid division by zero or irrelevant calculations
-    norms = np.sqrt(px**2 + py**2 + pz**2)
-    mask = norms > 1e-15  # Remove particles with very small momentum
-    px, py, pz, norms = px[mask], py[mask], pz[mask], norms[mask]
-
-    if len(px) < 2:  # If there are fewer than 2 particles, sphericality is undefined
-        return 0 # Sphericality doesn't apply for single-particle events
-
-    # Compute the total momentum of the system
-    total_momentum = np.sum(norms)
-
-    # Build the momenta matrix for PCA
-    momenta = np.vstack((px, py, pz)).T
-
-    # Apply PCA to find the thrust axis (direction of maximum momentum)
-    pca = PCA(n_components=1)
-    pca.fit(momenta)
-    thrust_axis = pca.components_[0]
-
-    # Normalize the thrust axis
-    thrust_axis /= np.linalg.norm(thrust_axis)
-
-    # Project the momenta onto the thrust axis
-    dot_products = np.abs(np.dot(momenta, thrust_axis))  # |p · n|
-    
-    # Calculate the sphericality value
-    sphericality = 1 - 0.5 * (np.sum(dot_products) / total_momentum) ** 2
-    
-    return sphericality
-
-
-def SetAKArr(filepath):
-    """
-    Process the raw input file and compute the thrust for each experiment.
-    
-    Parameters:
-    - filepath: Path to the input text file containing particle data.
-    
-    Returns:
-    - A dictionary with processed data (particle momenta, labels, etc.).
-    """
+def get_final_states(filepath):
     with open(filepath, 'r') as file:
         lines = file.readlines()
+        # Vertex ID record the what vertex is currently
 
-    # Initialize lists for storing data
-    px, py, pz, energy, mass, charge, pdg, thrust, jetiness, sphericality = [], [], [], [], [], [], [], [], [], []
-    px_ls, py_ls, pz_ls, energy_ls, mass_ls, charge_ls, pdg_ls = [], [], [], [], [], [], []
-    _label1, _label2, _label3, _label4, _label5 = [], [], [], [], []
+        parent_vertex_id = 0
+        B_plus_final_states_arr = []
+        B_minus_final_states_arr = []
+        other_final_states_arr = []
+        Meson_info = []
+        
+        for line in lines:
+            # New event
+            if line.startswith('E'):
+                if parent_vertex_id == 0:
+                    # First line event
+                    pass
+                else:
+                    B_plus_final_states_arr.append( B_plus_final_states )
+                    B_minus_final_states_arr.append( B_minus_final_states)
+                    other_final_states_arr.append( other_final_states )
 
-    n = 0
-    for line in lines:
-        if line.startswith('E'):  # Event header line
-            if n != 0:
-                # Store the particle data for the current event
-                px.append(np.array(px_ls, dtype=float))
-                py.append(np.array(py_ls, dtype=float))
-                pz.append(np.array(pz_ls, dtype=float))
-                energy.append(np.array(energy_ls, dtype=float))
-                mass.append(np.array(mass_ls, dtype=float))
-                charge.append(np.array(charge_ls, dtype=int))
-                pdg.append(np.array(pdg_ls, dtype=int))
+                parent_vertex_id = 0
+                B_plus_final_states = []
+                B_minus_final_states = []
+                other_final_states = []
+                
+                B_plus_vertices = []
+                B_minus_vertices = []
+                other_vertices = []
+            # New vertex
+            elif line.startswith('V'):
+                parent_vertex_id = parent_vertex_id + 1
+            # New particle
+            elif line.startswith('P'):
+                # Split the line 
+                partcl_dt = line.split()
+                cur_partcl = (
+                        int(partcl_dt[2]),                # Particle ID (pdgid)
+                        np.float64(partcl_dt[3]),         # Momentum in x (px)
+                        np.float64(partcl_dt[4]),         # Momentum in y (py)
+                        np.float64(partcl_dt[5]),         # Momentum in z (pz)
+                        np.float64(partcl_dt[6]),         # Energy
+                        np.float64(partcl_dt[7]),         # Mass
+                        abs(int(partcl_dt[11])),          # Child vertex
+                        parent_vertex_id                  # Current vertex ID
+                )
+                # Only record particles whose parent_vertex_id from B+ meson or B- meson
+                # and its child vertex = 0
+                child_vertex_id = abs(int(partcl_dt[11]))
+                pdgid = int(partcl_dt[2])
+                # First check whether it is B+ meson and B- meson
+                if pdgid == 521:
+                    B_plus_vertices.append(child_vertex_id)
+                    # collect info of B+ meson for labels
+                    Meson_info.append(cur_partcl)
+                elif pdgid == -521:
+                    B_minus_vertices.append(child_vertex_id)
+                elif not pdgid == 300553 and not pdgid == 521 and not pdgid == -521 and parent_vertex_id == 1:
+                    # Sometimes there is a photon
+                    if child_vertex_id == 0:
+                        other_final_states.append( cur_partcl )
+                    else:
+                        other_vertices.append(child_vertex_id)
+                else:
+                    pass
+                
+                neutrinos_photon = [12,14,16,18, 22]
+                # If parent vertex from B+ meson decay, record the child vertex in B+ meson decay
+                # If null child vertex, then it is the final states
+                for i in range(len(B_plus_vertices)):
+                    if parent_vertex_id == B_plus_vertices[i] and not child_vertex_id == 0:
+                        B_plus_vertices.append( child_vertex_id )
+                    elif parent_vertex_id == B_plus_vertices[i] and child_vertex_id == 0:
+                        is_neutrino = False
+                        for j in range( len(neutrinos_photon) ):
+                            if abs(cur_partcl[0]) == j:
+                                is_neutrino = True
+                            else:
+                                pass
+                        if not is_neutrino:
+                            B_plus_final_states.append(cur_partcl)
+                        else:
+                            pass
+                    else:
+                        pass
+                        
+                for i in range(len(B_minus_vertices)):
+                    if parent_vertex_id == B_minus_vertices[i] and not child_vertex_id == 0:
+                        B_minus_vertices.append( child_vertex_id )
+                    elif parent_vertex_id == B_minus_vertices[i] and child_vertex_id == 0:
+                        is_neutrino = False
+                        for j in range( len(neutrinos_photon) ):
+                            if abs(cur_partcl[0]) == j:
+                                is_neutrino = True
+                            else:
+                                pass
+                        if not is_neutrino:
+                            B_plus_final_states.append(cur_partcl)
+                        else:
+                            pass
+                    else:
+                        pass
+                
+                for i in range( len(other_vertices) ):
+                    if parent_vertex_id == other_vertices[i] and not child_vertex_id == 0:
+                        other_vertices.append( child_vertex_id )
+                    elif parent_vertex_id == other_vertices[i] and child_vertex_id == 0:
+                        other_final_states.append( cur_partcl )
+                    else:
+                        pass
 
-                # Calculate thrust for the current event
-                thrust_value = get_thrust(px_ls, py_ls, pz_ls)
-                sph_value = get_sphericality(px_ls,py_ls,pz_ls)
-                jetiness_value = get_jetiness(px_ls,py_ls,pz_ls,energy_ls)
-                # if sph_value == 0:
-                #     print(f"Thrust Value: {thrust_value}")
-                #     print(f"Sphericality: {sph_value}")
-                #     print(f"Jetiness: {jetiness_value}")
-                # Check for photons (pdg code 22)
-                for p in pdg_ls:
-                    if p == 22:
-                        print("Warning: Photon detected!")
-                thrust.append(thrust_value)
-                sphericality.append(sph_value)
-                jetiness.append(jetiness_value)
-                # Clear the per-experiment lists
-                px_ls, py_ls, pz_ls, energy_ls, mass_ls, charge_ls, pdg_ls = [], [], [], [], [], [], []
+        # Final event
+        B_plus_final_states_arr.append( B_plus_final_states )
+        B_minus_final_states_arr.append( B_minus_final_states)
+        other_final_states_arr.append( other_final_states )
 
-            # Parse experiment labels from the header line
-            exp_inf = line.split()
-            _label1.append(float(exp_inf[1]))
-            _label2.append(float(exp_inf[2]))
-            _label3.append(float(exp_inf[3]))
-            _label4.append(float(exp_inf[4]))
-            _label5.append(float(exp_inf[5]))
+        parent_vertex_id = 0
+        B_plus_final_states = []
+        B_minus_final_states = []
+        other_final_states = []
+        
+        B_plus_vertices = []
+        B_minus_vertices = []
+        other_vertices = []
 
-            n = 0  # Reset particle count for the next experiment
-        else:  # Particle data line
-            par = line.split()
-            if float(par[1]) == 22:  # Ignore photons (pdg == 22)
-                continue
-            else:
-                n += 1
-                # Append particle data to respective lists
-                charge_ls.append(int(par[0]))
-                pdg_ls.append(int(par[1]))
-                px_ls.append(float(par[2]))
-                py_ls.append(float(par[3]))
-                pz_ls.append(float(par[4]))
-                energy_ls.append(float(par[5]))
-                mass_ls.append(float(par[6]))
+        return B_plus_final_states_arr, B_minus_final_states_arr, Meson_info
+    
+def SetAKArr(filepath):
+    B_plus_arr, B_minus_arr, Meson_info = get_final_states( filepath )
+    _label_mass = []
 
-    # Append the last experiment data (after file ends)
-    if n > 0:
-        px.append(np.array(px_ls, dtype=float))
-        py.append(np.array(py_ls, dtype=float))
-        pz.append(np.array(pz_ls, dtype=float))
-        energy.append(np.array(energy_ls, dtype=float))
-        mass.append(np.array(mass_ls, dtype=float))
-        charge.append(np.array(charge_ls, dtype=int))
-        pdg.append(np.array(pdg_ls, dtype=int))
+    for Meson in Meson_info:
+        _label_mass.append(Meson[ 5 ])
 
-        # Calculate thrust for the current event
-        thrust_value = get_thrust(px_ls, py_ls, pz_ls)
-        sph_value = get_sphericality(px_ls,py_ls,pz_ls)
-        jetiness_value = get_jetiness(px_ls,py_ls,pz_ls,energy_ls)
-        # if sph_value == 0:
-        #     print(f"Thrust Value: {thrust_value}")
-        #     print(f"Sphericality: {sph_value}")
-        #     print(f"Jetiness: {jetiness_value}")
-        thrust.append(thrust_value)
-        sphericality.append(sph_value)
-        jetiness.append(jetiness_value)
-    # Construct the final dictionary for output
+    B_plus_final_state_px_arr = []
+    B_plus_final_state_py_arr = []
+    B_plus_final_state_pz_arr = []
+
+    B_plus_final_state_energy_arr = []
+    B_plus_final_state_mass_arr = []
+
+    for B_meson in B_plus_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in B_meson:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
+
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+        B_plus_final_state_px_arr.append(px_s)
+        B_plus_final_state_py_arr.append(py_s)
+        B_plus_final_state_pz_arr.append(pz_s)
+        B_plus_final_state_energy_arr.append(energy_s)
+        B_plus_final_state_mass_arr.append(mass_s)
+
+
+    B_minus_final_state_px_arr = []
+    B_minus_final_state_py_arr = []
+    B_minus_final_state_pz_arr = []
+
+    B_minus_final_state_energy_arr = []
+    B_minus_final_state_mass_arr = []
+
+    for B_meson in B_minus_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in B_meson:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
+
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+        B_minus_final_state_px_arr.append(px_s)
+        B_minus_final_state_py_arr.append(py_s)
+        B_minus_final_state_pz_arr.append(pz_s)
+        B_minus_final_state_energy_arr.append(energy_s)
+        B_minus_final_state_mass_arr.append(mass_s)
+    
+    total_arr = []
+
+    for B_plus in B_plus_arr:
+        # if len(B_plus) == 0 and len(B_minus) == 0:
+        #     total = others
+        #     _label.append( False )
+        # else:
+        #     total = B_plus + B_minus
+        #     _label.append( True )
+        # total_arr.append( total )
+        if not len(B_plus) == 0:
+            total = B_plus
+            # px_sum = sum(B_plus[1])
+            # py_sum = sum(B_plus[2])
+            # pz_sum = sum(B_plus[3])
+            # p_sum = px_sum + py_sum + pz_sum
+            # energy_sum = sum(B_plus[4])
+
+            # mass = np.sqrt(p_sum**2+energy_sum**2)
+            # print(mass)
+            # _label.append(mass)
+            # _label.append( True )
+            total_arr.append(total)
+        else:
+            pass
+
+    total_final_state_px_arr = []
+    total_final_state_py_arr = []
+    total_final_state_pz_arr = []
+
+    total_final_state_energy_arr = []
+    total_final_state_mass_arr = []
+
+    for B_meson in total_arr:
+        px_s = []
+        py_s = []
+        pz_s = []
+        energy_s = []
+        mass_s = []
+        for final_states in B_meson:
+            final_state_px = final_states[1]
+            final_state_py = final_states[2]
+            final_state_pz = final_states[3]
+            final_state_energy = final_states[4]
+            final_state_mass = final_states[5]
+
+            px_s.append(final_state_px)
+            py_s.append(final_state_py)
+            pz_s.append(final_state_pz)
+            energy_s.append(final_state_energy)
+            mass_s.append(final_state_mass)
+        total_final_state_px_arr.append(px_s)
+        total_final_state_py_arr.append(py_s)
+        total_final_state_pz_arr.append(pz_s)
+        total_final_state_energy_arr.append(energy_s)
+        total_final_state_mass_arr.append(mass_s)
+        # px_sum = sum(px_s)
+        # py_sum = sum(py_s)
+        # pz_sum = sum(pz_s)
+        # energy_sum = sum(energy_s)
+        # print(px_sum)
+
+        # print(np.sqrt(px_sum**2+py_sum**2+pz_sum**2+energy_sum**2))
+
+    # print(np.stack(_label_mass, axis=-1).shape)
+
     v = {
-        'part_px': px,
-        'part_py': py,
-        'part_pz': pz,
-        'part_energy': energy,
-        'part_mass': mass,
-        'part_charge': charge,
-        'part_pdg': pdg,
-        'thrust': thrust,
-        'sphericality': sphericality,
-        'jetiness': jetiness,
-        'label': np.stack(_label5, axis=-1)  # Shape: (num_experiments,)
+        'part_px': total_final_state_px_arr,
+        'part_py': total_final_state_py_arr,
+        'part_pz': total_final_state_pz_arr,
+        'part_energy': total_final_state_energy_arr,
+        'part_mass': total_final_state_mass_arr,
+        'label': np.stack(_label_mass, axis=-1)  # Shape: (num_experiments,)
     }
-
-    # Check for NaNs in the particle data (optional but recommended)
-    for arr_list in [px, py, pz, energy, mass]:
-        for arr in arr_list:
-            if np.isnan(arr).any():
-                logging.warning('NaN detected in data arrays!')
-
     return v
+
+# SetAKArr( "../event_shape_analysis/hepMCtest" )
 
 
 def readFile(data_in_filepath, parquet_out_filepath):
     # You need to decide which fields to include; here I included part_charge and part_pdg as well
     schema = pa.schema([
-        pa.field('label', pa.float64(), nullable=False),
-        pa.field('jetiness', pa.float64(), nullable=False),
-        pa.field('thrust', pa.float64(), nullable=False),
-        pa.field('sphericality', pa.float64(), nullable=False),
-        pa.field('part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False),
-        pa.field('part_charge', pa.large_list(pa.field('item', pa.int32(), nullable=False)), nullable=False)
+        pa.field( 'label', pa.float64(), nullable=False),
+        pa.field( 'part_px', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_py', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_pz', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_energy', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False ),
+        pa.field( 'part_mass', pa.large_list(pa.field('item', pa.float64(), nullable=False)), nullable=False )
     ])
 
     data = SetAKArr(data_in_filepath)
 
     # Create a DataFrame, converting numpy arrays to lists for pandas compatibility
     df = pd.DataFrame({
-        key: [arr.tolist() if isinstance(arr, (list, np.ndarray)) else arr for arr in val]  # Handle list or ndarray
+        key: [arr.tolist() if isinstance(arr, (np.ndarray)) else arr for arr in val]  # Handle list or ndarray
         for key, val in data.items()
     })
 
@@ -303,6 +371,6 @@ def readFile(data_in_filepath, parquet_out_filepath):
 
 
 # Example usage
-readFile('../raw_data/train.txt', '../data/Bmeson/train_file.parquet')
-readFile('../raw_data/test.txt', '../data/Bmeson/test_file.parquet')
-# readFile('../raw_data/testing.txt', '../data/Bmeson/testing_file.parquet')
+# readFile('../event_shape_analysis/hepMCtest', 'train_file.parquet')
+readFile('../full_hep_data/hepMCtrain', '../data/Bmeson/train_file.parquet')
+readFile('../full_hep_data/hepMCtest', '../data/Bmeson/test_file.parquet')

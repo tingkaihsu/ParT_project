@@ -7,12 +7,12 @@ class ParticleTransformerWrapper(torch.nn.Module):
         super().__init__()
         self.mod = ParticleTransformer(**kwargs)
         
-        # Event feature processing
-        self.event_fc = torch.nn.Sequential(
-            torch.nn.Linear(3, 32),
-            torch.nn.ReLU(),
-            torch.nn.Linear(32, 128)
-        )
+        # # Event feature processing
+        # self.event_fc = torch.nn.Sequential(
+        #     torch.nn.Linear(3, 32),
+        #     torch.nn.ReLU(),
+        #     torch.nn.Linear(32, 128)
+        # )
         
         # Modified classifier - input size will be determined dynamically
         self.classifier = torch.nn.Linear(256, kwargs['num_classes'])
@@ -21,27 +21,29 @@ class ParticleTransformerWrapper(torch.nn.Module):
     def no_weight_decay(self):
         return {'mod.cls_token', }
     
-    def forward(self, points, features, lorentz_vectors, mask, event_features):
-        # Process particles
-        particle_output = self.mod(features, v=lorentz_vectors, mask=mask)
+    # def forward(self, points, features, lorentz_vectors, mask, event_features):
+    #     # Process particles
+    #     particle_output = self.mod(features, v=lorentz_vectors, mask=mask)
         
-        # Get transformer output dimension
-        transformer_dim = particle_output.size(-1)
+    #     # Get transformer output dimension
+    #     transformer_dim = particle_output.size(-1)
         
-        # Create dynamic projection layer matching transformer output
-        projection = torch.nn.Linear(transformer_dim, 128).to(particle_output.device, particle_output.dtype)
+    #     # Create dynamic projection layer matching transformer output
+    #     projection = torch.nn.Linear(transformer_dim, 128).to(particle_output.device, particle_output.dtype)
         
-        # Apply projection
-        particle_output = projection(particle_output)
+    #     # Apply projection
+    #     particle_output = projection(particle_output)
         
-        # Process event features
-        event_features = event_features.squeeze(-1)
-        event_embedding = self.event_fc(event_features)
+    #     # Process event features
+    #     event_features = event_features.squeeze(-1)
+    #     event_embedding = self.event_fc(event_features)
         
-        # Combine features
-        combined = torch.cat([particle_output, event_embedding], dim=1)
-        logits = self.classifier(combined)
-        return logits
+    #     # Combine features
+    #     combined = torch.cat([particle_output, event_embedding], dim=1)
+    #     logits = self.classifier(combined)
+    #     return logits
+    def forward(self, points, features, lorentz_vectors, mask):
+        return self.mod(features, v=lorentz_vectors, mask=mask)
 
 def get_model(data_config, **kwargs):
     cfg = dict(
